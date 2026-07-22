@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MedLab Pro Dashboard</title>
+    <title>MedLab Pro System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,14 +12,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; }
-      .hero-bg { background: linear-gradient(120deg, #0f766e 0%, #0d9488 100%); }
-      .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); }
-      .tab-content { animation: slideIn 0.4s ease-out forwards; }
-      @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-      .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-      .card-hover:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1); }
-      .btn-press:active { transform: scale(0.97); }
-      .swipe-area { touch-action: pan-y; }
+      .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s; }
+      .card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+      .btn { transition: all 0.2s; }
+      .btn:active { transform: scale(0.98); }
+      .input { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; width: 100%; outline: none; transition: border 0.2s; }
+      .input:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
     </style>
   </head>
   <body>
@@ -28,184 +26,259 @@
       const { useState, useEffect, useRef } = React;
       const API_URL = 'https://medlab-api-ib9d.onrender.com/api';
 
-      const translations = {
-        en: { dir: 'ltr', welcome: "Welcome to MedLab", subtitle: "Advanced Laboratory Management System", tab1: "Patients", tab2: "Tests", tab3: "Finance", register: "Register New Patient", fullName: "Full Name", phone: "Phone Number", generate: "Generate Access Code", catalog: "Test Catalog & Pricing", expenses: "Log Expenditure", description: "Description", amount: "Amount", logExpense: "Log Expense", csv: "Generate Spreadsheet (CSV)", exportText: "Export patient tests and payment details for a specific time period.", startDate: "Start Date", endDate: "End Date", download: "Download Report", overview: "Financial Overview" },
-        ar: { dir: 'rtl', welcome: "مرحباً بكم في ميديلاب", subtitle: "نظام إدارة المختبرات المتقدم", tab1: "المرضى", tab2: "الفحوصات", tab3: "المالية", register: "تسجيل مريض جديد", fullName: "الاسم الكامل", phone: "رقم الهاتف", generate: "إنشاء رمز الدخول", catalog: "كتالوج الفحوصات والأسعار", expenses: "تسجيل المصروفات", description: "الوصف", amount: "المبلغ", logExpense: "تسجيل المصروف", csv: "إنشاء جدول بيانات (CSV)", exportText: "تصدير فحوصات المرضى وتفاصيل المدفوعات لفترة زمنية محددة.", startDate: "تاريخ البدء", endDate: "تاريخ الانتهاء", download: "تحميل التقرير", overview: "نظرة عامة مالية" },
-        sorani: { dir: 'rtl', welcome: "بەخێربێیت بۆ مێدلاب", subtitle: "سیستەمی پێشکەوتووی بەڕێوەبردنی تاقیگە", tab1: "نەخۆشەکان", tab2: "پشکنینەکان", tab3: "دارایی", register: "تۆمارکردنی نەخۆشی نوێ", fullName: "ناوی تەواو", phone: "ژمارەی تەلەفۆن", generate: "دروستکردنی کۆدی چوونەژوورەوە", catalog: "کاتالۆگی پشکنین و نرخەکان", expenses: "تۆمارکردنی خەرجی", description: "وەسف", amount: "بڕی پارە", logExpense: "تۆمارکردنی خەرجی", csv: "دروستکردنی خشتە (CSV)", exportText: "هەناردەکردنی پشکنینی نەخۆش و وردەکارییەکانی پارەدان بۆ ماوەیەکی دیاریکراو.", startDate: "بەرواری دەستپێکردن", endDate: "بەرواری کۆتایی", download: "داگرتنی ڕاپۆرت", overview: "تێڕوانینی دارایی" },
-        badini: { dir: 'ltr', welcome: "Xêr hatî bo MedLab", subtitle: "Sîstema Pêşketûyî ya Îdarekirina Laboratûar", tab1: "Nexweş", tab2: "Test", tab3: "Malî", register: "Qeydkirina Nexweşê Nû", fullName: "Navê Têkûz", phone: "Hejmara Telefonê", generate: "Çêkirina Koda Gihîştinê", catalog: "Kataloga Test û Biha", expenses: "Qeydkirina Xercî", description: "Rave", amount: "Mîqdar", logExpense: "Qeydkirina Xercî", csv: "Çêkirina Tabloyê (CSV)", exportText: "Eksportkirina testên nexweş û hûrgiliyên perdanê ji bo demekê diyarkirî.", startDate: "Dîroka Destpêkirinê", endDate: "Dîroka Dawî", download: "Daxistina Raporê", overview: "Têgihiştina Malî" }
-      };
-
       function App() {
-        const [tests, setTests] = useState([]);
-        const [lang, setLang] = useState('en');
-        const [activeTab, setActiveTab] = useState(0);
-        const [touchStart, setTouchStart] = useState(null);
-        const [formData, setFormData] = useState({ name: '', phone: '', dob: '1990-01-01', sex: 'Male' });
-        const [expense, setExpense] = useState({ category: 'Materials', description: '', amount: 0 });
-        const [dates, setDates] = useState({ startDate: '', endDate: '' });
+        const [mode, setMode] = useState('lab');
         
-        const t = translations[lang];
-        const canvasRef = useRef(null);
+        return (
+          <div className="min-h-screen">
+            <nav className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-50">
+              <h1 className="text-xl font-extrabold text-teal-600">MedLab Pro</h1>
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                <button onClick={() => setMode('lab')} className={`px-4 py-2 rounded-lg font-bold text-sm ${mode === 'lab' ? 'bg-white shadow text-teal-600' : 'text-gray-500'}`}>Lab Staff</button>
+                <button onClick={() => setMode('patient')} className={`px-4 py-2 rounded-lg font-bold text-sm ${mode === 'patient' ? 'bg-white shadow text-teal-600' : 'text-gray-500'}`}>Patient</button>
+              </div>
+            </nav>
+            
+            {mode === 'lab' ? <LabDashboard /> : <PatientApp />}
+          </div>
+        );
+      }
 
-        useEffect(() => {
-          document.documentElement.dir = t.dir;
-          document.documentElement.lang = lang;
-        }, [lang]);
+      function LabDashboard() {
+        const [tab, setTab] = useState(1);
+        const [tests, setTests] = useState([]);
+        const [patients, setPatients] = useState([]);
+        const [appointments, setAppointments] = useState([]);
+        
+        const [newPatient, setNewPatient] = useState({ name: '', phone: '', sex: 'Male' });
+        const [newApt, setNewApt] = useState({ patientId: '', testIds: [], date: '', type: 'in_lab' });
+        const [resultData, setResultData] = useState({ appointmentId: '', results: [] });
 
-        useEffect(() => {
-          axios.get(`${API_URL}/tests`).then(res => setTests(res.data)).catch(err => console.error("API Error: ", err));
-        }, []);
-
-        // Simple Financial Chart
-        useEffect(() => {
-          if (activeTab === 2 && canvasRef.current) {
-            const ctx = canvasRef.current.getContext('2d');
-            new Chart(ctx, {
-              type: 'doughnut',
-              data: {
-                labels: ['Materials', 'Rent', 'Salaries', 'Utilities'],
-                datasets: [{ data: [300, 800, 1500, 200], backgroundColor: ['#0d9488', '#3b82f6', '#f97316', '#e11d48'], hoverOffset: 12 }]
-              },
-              options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 14 } } } } }
-            });
-          }
-        }, [activeTab]);
-
-        // Swipe Gestures
-        const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
-        const handleTouchMove = (e) => {
-          if (!touchStart) return;
-          const touchEnd = e.targetTouches[0].clientX;
-          if (touchStart - touchEnd > 50) { setActiveTab(prev => Math.min(prev + 1, 2)); setTouchStart(null); }
-          if (touchStart - touchEnd < -50) { setActiveTab(prev => Math.max(prev - 1, 0)); setTouchStart(null); }
+        const fetchData = async () => {
+          const tRes = await axios.get(`${API_URL}/tests`);
+          setTests(tRes.data);
+          const aRes = await axios.get(`${API_URL}/appointments`);
+          setAppointments(aRes.data);
+          const pMap = new Map();
+          aRes.data.forEach(a => pMap.set(a.patient.id, a.patient));
+          setPatients(Array.from(pMap.values()));
         };
+
+        useEffect(() => { fetchData(); }, []);
 
         const generateCode = () => `LAB-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
         const handleCreatePatient = async (e) => {
           e.preventDefault();
-          try {
-            await axios.post(`${API_URL}/patients/create`, { ...formData, uniqueCode: generateCode(), bloodType: 'O+' });
-            alert(`Success! Code generated for ${formData.name}`);
-          } catch (err) { alert('Error creating patient.'); }
+          await axios.post(`${API_URL}/patients/create`, { ...newPatient, uniqueCode: generateCode(), dob: '1990-01-01', bloodType: 'O+' });
+          alert('Patient created!');
+          fetchData();
         };
 
-        const handleAddExpense = async (e) => {
+        const handleTestSelect = (testId) => {
+          setNewApt(prev => {
+            const ids = prev.testIds.includes(testId) ? prev.testIds.filter(id => id !== testId) : [...prev.testIds, testId];
+            return { ...prev, testIds: ids };
+          });
+        };
+
+        const handleCreateApt = async (e) => {
           e.preventDefault();
-          await axios.post(`${API_URL}/expenses`, expense);
-          alert('Expense logged!');
+          await axios.post(`${API_URL}/appointments/create`, { ...newApt, scheduledTime: newApt.date });
+          alert('Appointment booked!');
+          fetchData();
         };
 
-        const handleDownloadCSV = async () => {
-          try {
-            const response = await axios.get(`${API_URL}/export/csv`, { params: dates, responseType: 'blob' });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url; link.setAttribute('download', 'medlab-report.csv');
-            document.body.appendChild(link); link.click();
-          } catch (err) { alert('Error downloading'); }
+        const handleResultChange = (testId, field, value) => {
+          setResultData(prev => {
+            const results = [...prev.results];
+            const idx = results.findIndex(r => r.testId === testId);
+            if (idx > -1) results[idx][field] = value;
+            else results.push({ testId, [field]: value });
+            return { ...prev, results };
+          });
         };
 
-        const tabs = [t.tab1, t.tab2, t.tab3];
+        const handleSaveResults = async (e) => {
+          e.preventDefault();
+          const apt = appointments.find(a => a.id === resultData.appointmentId);
+          await axios.post(`${API_URL}/results/enter`, { 
+            appointmentId: resultData.appointmentId, 
+            patientId: apt.patientId, 
+            results: resultData.results 
+          });
+          alert('Results saved!');
+          fetchData();
+        };
 
         return (
-          <div className="min-h-screen pb-10">
-            <nav className="glass sticky top-0 z-50 shadow-sm p-4 flex justify-between items-center px-6">
-              <h1 className="text-xl font-extrabold text-teal-600 tracking-wide">MedLab Pro</h1>
-              <select onChange={(e) => setLang(e.target.value)} className="p-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer">
-                <option value="en">English</option><option value="ar">العربية</option><option value="sorani">کوردی سۆرانی</option><option value="badini">Kurdî Badînî</option>
-              </select>
-            </nav>
-
-            <div className="hero-bg text-white p-12 text-center shadow-xl rounded-b-3xl">
-              <div className="max-w-3xl mx-auto">
-                <svg className="w-16 h-16 mx-auto mb-4 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                <h2 className="text-4xl font-extrabold mb-2">{t.welcome}</h2>
-                <p className="text-teal-100 text-lg">{t.subtitle}</p>
-              </div>
+          <div className="p-8 max-w-6xl mx-auto">
+            <div className="flex gap-2 mb-8 border-b">
+              {[1, 2, 3].map(t => (
+                <button key={t} onClick={() => setTab(t)} className={`px-6 py-3 font-bold ${tab === t ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-400'}`}>
+                  {t === 1 ? 'Patients' : t === 2 ? 'Appointments' : 'Results'}
+                </button>
+              ))}
             </div>
 
-            {/* Tabs */}
-            <div className="max-w-5xl mx-auto mt-8 px-4">
-              <div className="flex justify-center gap-2 mb-8 bg-white p-2 rounded-2xl shadow-md w-fit mx-auto">
-                {tabs.map((tab, i) => (
-                  <button key={i} onClick={() => setActiveTab(i)} className={`px-6 py-2 rounded-xl font-bold transition-colors btn-press ${activeTab === i ? 'bg-teal-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}>
-                    {tab}
-                  </button>
-                ))}
+            {tab === 1 && (
+              <div className="card p-8">
+                <h2 className="text-xl font-bold mb-6">Register New Patient</h2>
+                <form onSubmit={handleCreatePatient} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <input className="input" placeholder="Full Name" onChange={e => setNewPatient({...newPatient, name: e.target.value})} required />
+                  <input className="input" placeholder="Phone" onChange={e => setNewPatient({...newPatient, phone: e.target.value})} required />
+                  <select className="input" onChange={e => setNewPatient({...newPatient, sex: e.target.value})}>
+                    <option>Male</option><option>Female</option>
+                  </select>
+                  <button type="submit" className="btn bg-teal-600 text-white p-3 rounded-lg font-bold md:col-span-3">Generate Code</button>
+                </form>
               </div>
+            )}
 
-              {/* Swipeable Content Area */}
-              <div className="swipe-area" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove}>
-                {activeTab === 0 && (
-                  <div className="tab-content grid md:grid-cols-2 gap-8">
-                    <div className="glass p-8 rounded-2xl shadow-md card-hover border border-gray-100">
-                      <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center">👤 {t.register}</h3>
-                      <form onSubmit={handleCreatePatient} className="space-y-4">
-                        <input className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" placeholder={t.fullName} onChange={e => setFormData({...formData, name: e.target.value})} required />
-                        <input className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" placeholder={t.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
-                        <select className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" onChange={e => setFormData({...formData, sex: e.target.value})}>
-                          <option>Male</option><option>Female</option>
-                        </select>
-                        <button type="submit" className="bg-teal-600 text-white px-4 py-3 rounded-xl font-bold w-full hover:bg-teal-700 btn-press">{t.generate}</button>
-                      </form>
-                    </div>
-                    <div className="glass p-8 rounded-2xl shadow-md card-hover border border-gray-100 flex items-center justify-center text-center">
-                      <div>
-                        <div className="text-6xl mb-4">🏥</div>
-                        <p className="text-gray-600">Quickly register patients and provide them with a unique code to access their mobile app.</p>
-                      </div>
-                    </div>
+            {tab === 2 && (
+              <div className="card p-8">
+                <h2 className="text-xl font-bold mb-6">Book Appointment</h2>
+                <form onSubmit={handleCreateApt} className="space-y-4">
+                  <select className="input" onChange={e => setNewApt({...newApt, patientId: e.target.value})} required>
+                    <option value="">Select Patient</option>
+                    {patients.map(p => <option key={p.id} value={p.id}>{p.fullName}</option>)}
+                  </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <input type="datetime-local" className="input" onChange={e => setNewApt({...newApt, date: e.target.value})} required />
+                    <select className="input" onChange={e => setNewApt({...newApt, type: e.target.value})}>
+                      <option value="in_lab">In Lab</option><option value="home_service">Home Service</option>
+                    </select>
                   </div>
-                )}
+                  <div className="max-h-60 overflow-y-auto border rounded-lg p-4 space-y-2">
+                    {tests.map(test => (
+                      <label key={test.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input type="checkbox" checked={newApt.testIds.includes(test.id)} onChange={() => handleTestSelect(test.id)} className="w-5 h-5 text-teal-600" />
+                        <span className="flex-1 font-medium">{test.name}</span>
+                        <span className="text-teal-600 font-bold">${test.price}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <button type="submit" className="btn bg-blue-600 text-white p-3 rounded-lg font-bold w-full">Book Appointment</button>
+                </form>
+              </div>
+            )}
 
-                {activeTab === 1 && (
-                  <div className="tab-content glass p-8 rounded-2xl shadow-md border border-gray-100">
-                    <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center">🧪 {t.catalog}</h3>
-                    <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-3">
-                      {tests.map(test => (
-                        <div key={test.id} className="border-b border-gray-100 pb-3 flex justify-between items-center card-hover p-3 rounded-xl">
-                          <div>
-                            <p className="font-semibold text-gray-800">{test.name}</p>
-                            <p className="text-xs text-gray-400">{test.category} - {test.turnaroundHours}h</p>
+            {tab === 3 && (
+              <div className="card p-8">
+                <h2 className="text-xl font-bold mb-6">Enter Results</h2>
+                <form onSubmit={handleSaveResults} className="space-y-4">
+                  <select className="input" onChange={e => setResultData({ ...resultData, appointmentId: e.target.value, results: [] })} required>
+                    <option value="">Select Appointment</option>
+                    {appointments.map(a => <option key={a.id} value={a.id}>{a.patient.fullName} - {new Date(a.scheduledTime).toLocaleDateString()}</option>)}
+                  </select>
+                  
+                  {resultData.appointmentId && (
+                    <div className="space-y-4 border-t pt-4">
+                      {appointments.find(a => a.id === resultData.appointmentId)?.tests.map(aptTest => (
+                        <div key={aptTest.testId} className="bg-gray-50 p-4 rounded-xl">
+                          <h4 className="font-bold mb-3">{aptTest.test.name}</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <input className="input p-2" placeholder="Result Value" onChange={e => handleResultChange(aptTest.testId, 'resultValue', e.target.value)} required />
+                            <input className="input p-2" placeholder="Unit (e.g mg/dL)" onChange={e => handleResultChange(aptTest.testId, 'unit', e.target.value)} />
+                            <input className="input p-2" placeholder="Ref Range (e.g 4-10)" onChange={e => handleResultChange(aptTest.testId, 'referenceRange', e.target.value)} />
+                            <select className="input p-2" onChange={e => handleResultChange(aptTest.testId, 'flag', e.target.value)}>
+                              <option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option><option value="critical">Critical</option>
+                            </select>
                           </div>
-                          <p className="font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-lg">${test.price}</p>
                         </div>
                       ))}
+                      <button type="submit" className="btn bg-green-600 text-white p-3 rounded-lg font-bold w-full">Save Results</button>
                     </div>
-                  </div>
-                )}
-
-                {activeTab === 2 && (
-                  <div className="tab-content grid md:grid-cols-2 gap-8">
-                    <div className="glass p-8 rounded-2xl shadow-md card-hover border border-gray-100">
-                      <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center">💰 {t.expenses}</h3>
-                      <form onSubmit={handleAddExpense} className="space-y-4">
-                        <select className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" onChange={e => setExpense({...expense, category: e.target.value})}>
-                          <option>Materials</option><option>Rent</option><option>Utilities</option><option>Salaries</option><option>Other</option>
-                        </select>
-                        <input className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" placeholder={t.description} onChange={e => setExpense({...expense, description: e.target.value})} required />
-                        <input type="number" className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" placeholder={t.amount} onChange={e => setExpense({...expense, amount: e.target.value})} required />
-                        <button type="submit" className="bg-red-500 text-white px-4 py-3 rounded-xl font-bold w-full hover:bg-red-600 btn-press">{t.logExpense}</button>
-                      </form>
-                    </div>
-                    <div className="glass p-8 rounded-2xl shadow-md card-hover border border-gray-100">
-                      <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center">📊 {t.overview}</h3>
-                      <canvas ref={canvasRef}></canvas>
-                    </div>
-                    <div className="glass p-8 rounded-2xl shadow-md card-hover border border-gray-100 md:col-span-2">
-                      <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center">📈 {t.csv}</h3>
-                      <p className="text-sm text-gray-500 mb-6">{t.exportText}</p>
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <input type="date" className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" onChange={e => setDates({...dates, startDate: e.target.value})} />
-                        <input type="date" className="w-full p-3 bg-white/80 border border-gray-200 rounded-xl outline-none" onChange={e => setDates({...dates, endDate: e.target.value})} />
-                      </div>
-                      <button onClick={handleDownloadCSV} className="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold w-full hover:bg-blue-700 btn-press">{t.download}</button>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </form>
               </div>
+            )}
+          </div>
+        );
+      }
+
+      function PatientApp() {
+        const [patient, setPatient] = useState(null);
+        const [code, setCode] = useState('');
+        const [results, setResults] = useState([]);
+        const canvasRef = useRef(null);
+
+        const handleLogin = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await axios.post(`${API_URL}/patients/login`, { uniqueCode: code });
+            setPatient(res.data);
+            const rRes = await axios.get(`${API_URL}/patients/${res.data.id}/results`);
+            setResults(rRes.data);
+          } catch {
+            alert('Invalid code');
+          }
+        };
+
+        useEffect(() => {
+          if (patient && results.length > 0 && canvasRef.current) {
+            const ctx = canvasRef.current.getContext('2d');
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: results.map(r => new Date(r.createdAt).toLocaleDateString()),
+                datasets: [{
+                  label: 'Result Trend',
+                  data: results.map(r => parseFloat(r.resultValue) || 0),
+                  borderColor: '#0d9488', tension: 0.4, fill: true, backgroundColor: 'rgba(13, 148, 136, 0.1)'
+                }]
+              }
+            });
+          }
+        }, [patient, results]);
+
+        if (!patient) {
+          return (
+            <div className="flex items-center justify-center min-h-[80vh]">
+              <form onSubmit={handleLogin} className="card p-8 w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Patient Login</h2>
+                <input className="input mb-4 text-center text-lg tracking-widest" placeholder="Enter Your Access Code" value={code} onChange={e => setCode(e.target.value)} required />
+                <button type="submit" className="btn bg-teal-600 text-white p-3 rounded-lg font-bold w-full">View My Results</button>
+              </form>
             </div>
+          );
+        }
+
+        return (
+          <div className="p-8 max-w-4xl mx-auto">
+            <div className="card p-8 mb-8 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">{patient.fullName}</h2>
+                <p className="text-gray-500">{patient.sex} • {patient.bloodType} Blood</p>
+              </div>
+              <button onClick={() => setPatient(null)} className="text-red-500 font-bold">Logout</button>
+            </div>
+
+            {results.length > 0 ? (
+              <>
+                <div className="card p-8 mb-8">
+                  <h3 className="text-xl font-bold mb-4">Health Trends</h3>
+                  <canvas ref={canvasRef}></canvas>
+                </div>
+                <div className="space-y-4">
+                  {results.map(r => (
+                    <div key={r.id} className="card p-6 flex justify-between items-center">
+                      <div>
+                        <h4 className="font-bold">{r.test.name}</h4>
+                        <p className="text-sm text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-800">{r.resultValue} <span className="text-sm font-normal text-gray-400">{r.unit}</span></p>
+                        <span className={`text-xs px-2 py-1 rounded ${r.flag === 'high' ? 'bg-red-100 text-red-600' : r.flag === 'low' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>{r.flag}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="card p-8 text-center text-gray-500">No results available yet.</div>
+            )}
           </div>
         );
       }
